@@ -1,12 +1,13 @@
-{% load staticfiles %}
 <!DOCTYPE html>
+{% load render_bundle from webpack_loader %}
 <html>
-    <head>
-        <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
-    </head>
-    <body>
-        {% block content %}{% endblock content %}
-
-        <script src="{% static 'js/app.js' %}"></script>
-    </body>
+  <body>
+    {% block content %}
+    {% endblock %}
+    {% if not DEBUG %}
+      {% render_bundle 'manifest' 'js' %}
+      {% render_bundle 'vendor' 'js' %}
+    {% endif %}
+    {% render_bundle 'app' %}
+  </body>
 </html>
