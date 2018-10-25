@@ -2,9 +2,9 @@
   <b-container>
     <b-row>
       <b-col md="6" class="my-1">
-        <b-form-group horizontal label="Consumer type" class="mb-0">
+        <b-form-group horizontal label="Voltage" class="mb-0">
           <b-input-group>
-            <b-form-select v-model="filterBy" slot="append" v-on="">
+            <b-form-select v-model="filterBy" slot="append" v-on:change="filterData">
               <option value="low">low</option>
               <option value="high">high</option>
               <option value="extra_high">extra high</option>
@@ -13,9 +13,6 @@
         </b-form-group>
       </b-col>
     </b-row>
-    <!-- <ul class="people-list">
-      <li v-for="person in filteredConsumers">{{ person.name }}</li>
-    </ul> -->
     <b-table striped hover :items="filtered" :fields="fields"></b-table>
   </b-container>
 </template>
@@ -28,8 +25,18 @@
       return {
         consumers: [],
         filtered: [],
-        fields: ['id', 'name', 'consumer_type'],
-        filterBy: 'low'
+        fields: [{
+          key: 'id',
+          label: 'Consumer id'
+        }, {
+          key: 'name',
+          label: 'Full name'
+        }, {
+          key: 'consumer_type',
+          label: 'Voltage',
+        }],
+        filterBy: 'low',
+        lastFilter: null
       }
     },
     mounted() {
@@ -37,17 +44,19 @@
         .get(`http://localhost:8000/api/consumers/`)
         .then(response => {
           this.consumers = response.data
+          this.filtered = this.consumers
         })
     },
     beforeUpdate() {
-      this.filtered = [{
-        "id": 1,
-        "name": "Jim Bond",
-        "consumer_type": "extra_high"
-      }]
-      // this.filtered = this.consumers.filter(item =>
-      //   item.consumer_type === this.filterBy
-      // )
+      if (this.filterBy !== this.lastFilter) {
+        this.lastFilter = this.filterBy
+        this.filtered = this.consumers.filter(item => item.consumer_type === this.filterBy)
+      }
+    },
+    methods: {
+      filterData: function () {
+        this.lastFilter = this.filterBy
+      }
     }
   }
 
