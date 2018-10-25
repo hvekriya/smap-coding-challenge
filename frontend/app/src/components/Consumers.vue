@@ -13,8 +13,12 @@
         </b-form-group>
       </b-col>
     </b-row>
-    <b-table striped hover :items="filtered" :fields="fields">
+    <b-table striped hover :items="
+            filtered" :fields="fields">
       <template slot="actions" slot-scope="row">
+        <b-button size="sm" @click.stop="info(row.item, $event.target)" class="mr-1">
+          More info
+        </b-button>
         <b-button size="sm" @click.stop="deleteConsumer(row.item, row.index, $event.target)" class="mr-1">
           Delete
         </b-button>
@@ -25,6 +29,7 @@
 
 <script>
   import axios from 'axios'
+
   export default {
     name: 'Consumers',
     data() {
@@ -76,6 +81,14 @@
               console.log('There was error with delete the item')
             }
           })
+      },
+      info(item, button) {
+        this.$router.push({
+          name: 'consumer',
+          params: {
+            id: item.id
+          }
+        })
       }
     }
   }

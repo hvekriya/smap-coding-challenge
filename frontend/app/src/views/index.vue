@@ -8,7 +8,7 @@
 <script>
   import Consumers from '@/components/Consumers'
   export default {
-    name: 'Home',
+    name: 'home',
     components: {
       Consumers: Consumers
     }
