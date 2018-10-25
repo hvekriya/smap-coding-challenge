@@ -2,7 +2,7 @@
   <b-container>
     <b-row>
       <b-col md="6" class="my-1">
-        <b-form-group horizontal label="Voltage" class="mb-0">
+        <b-form-group horizontal label="Filter by voltage" class="mb-0">
           <b-input-group>
             <b-form-select v-model="filterBy" slot="append" v-on:change="filterData">
               <option value="low">low</option>
@@ -13,7 +13,13 @@
         </b-form-group>
       </b-col>
     </b-row>
-    <b-table striped hover :items="filtered" :fields="fields"></b-table>
+    <b-table striped hover :items="filtered" :fields="fields">
+      <template slot="actions" slot-scope="row">
+        <b-button size="sm" @click.stop="deleteConsumer(row.item, row.index, $event.target)" class="mr-1">
+          Delete
+        </b-button>
+      </template>
+    </b-table>
   </b-container>
 </template>
 
@@ -34,6 +40,9 @@
         }, {
           key: 'consumer_type',
           label: 'Voltage',
+        }, {
+          key: 'actions',
+          label: 'Actions'
         }],
         filterBy: 'low',
         lastFilter: null
@@ -56,6 +65,17 @@
     methods: {
       filterData: function () {
         this.lastFilter = this.filterBy
+      },
+      deleteConsumer(item, index, button) {
+        axios
+          .delete(`http://localhost:8000/api/consumer/${item.id}`)
+          .then(response => {
+            if (response.data.success) {
+              this.filtered.splice(index, 1)
+            } else {
+              console.log('There was error with delete the item')
+            }
+          })
       }
     }
   }
