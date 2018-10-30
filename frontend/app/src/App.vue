@@ -25,4 +25,8 @@
     color: #2c3e50;
   }
 
+  h1 {
+    margin-top: 2%;
+  }
+
 </style>
