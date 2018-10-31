@@ -18,10 +18,24 @@
         </b-col>
         <b-col md="6" class="my-1">
           <h4>Profit: £{{totalBill - totalCost | round}}</h4>
+          <p>(Combined two years)</p>
         </b-col>
       </b-row>
       <b-row>
-        <highcharts :options="chartOptions"></highcharts>
+        <b-col md="6" class="my-1">
+          <GChart type="ColumnChart" :data="filteredConsumptionData" :options="consumptionChartOptions" />
+        </b-col>
+        <b-col md="6" class="my-1">
+          <GChart type="ColumnChart" :data="filteredTotalBill" :options="totalBillChartOptions" />
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col md="6" class="my-1">
+          <GChart type="ColumnChart" :data="filteredTotalCost" :options="totalCostChartOptions" />
+        </b-col>
+        <b-col md="6" class="my-1">
+          <GChart type="ColumnChart" :data="filteredTotalProfit" :options="totalProfitChartOptions" />
+        </b-col>
       </b-row>
     </b-container>
   </div>
@@ -31,57 +45,91 @@
   import axios from 'axios'
   import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
   import {
-    Chart
-  } from 'highcharts-vue'
+    GChart
+  } from 'vue-google-charts'
 
   export default {
     name: 'consumer',
     components: {
       PulseLoader,
-      highcharts: Chart
+      GChart
     },
     data() {
       return {
         consumer_data: [],
         loading: true,
         filterBy: 2016,
-        filtered: [],
+        consumptionData: [],
+        filteredConsumptionData: [],
+        filteredTotalBill: [],
+        filteredTotalCost: [],
+        filteredTotalProfit: [],
         lastFilter: null,
         totalCost: null,
         totalBill: null,
-        chartOptions: {
+        consumptionChartOptions: {
           chart: {
-            type: 'bar',
-            type: 'column'
-          },
-          title: {
-            text: 'Monthly Consumer Consumption',
-            x: -20 //center
-          },
-          xAxis: {
-            categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-            ]
-          },
-          yAxis: {
-            title: {
-              text: 'Consumption'
-            },
-            plotLines: [{
-              value: 0,
-              width: 1,
-              color: '#808080'
-            }]
+            title: 'Monthly Consumption'
           },
           legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'middle',
-            borderWidth: 0
+            position: 'none'
           },
-          series: [{
-            data: []
-          }]
+          width: 600,
+          height: 300,
+          vAxis: {
+            title: 'Consumption'
+          },
+          hAxis: {
+            title: 'Month'
+          }
+        },
+        totalBillChartOptions: {
+          chart: {
+            title: 'Monthly Bill'
+          },
+          legend: {
+            position: 'none'
+          },
+          width: 600,
+          height: 300,
+          vAxis: {
+            title: 'Bill'
+          },
+          hAxis: {
+            title: 'Month'
+          }
+        },
+        totalCostChartOptions: {
+          chart: {
+            title: 'Monthly Cost'
+          },
+          legend: {
+            position: 'none'
+          },
+          width: 600,
+          height: 300,
+          vAxis: {
+            title: 'Cost'
+          },
+          hAxis: {
+            title: 'Month'
+          }
+        },
+        totalProfitChartOptions: {
+          chart: {
+            title: 'Monthly Profit'
+          },
+          legend: {
+            position: 'none'
+          },
+          width: 600,
+          height: 300,
+          vAxis: {
+            title: 'Profit'
+          },
+          hAxis: {
+            title: 'Month'
+          }
         }
       }
     },
@@ -91,32 +139,68 @@
         .then(response => {
           this.loading = false
           this.consumer_data = response.data
-          this.filtered = this.consumer_data.filter(item => item.year === this.filterBy)
-          for (var i = 0; i < this.filtered.length; i++) {
-            this.chartOptions.series[0].data.push(this.filtered[i].consumption)
-            this.totalBill += this.filtered.length * this.filtered[i].total_bill
-            this.totalCost += this.filtered.length * this.filtered[i].total_cost
-          }
+          this.consumptionChart()
+          this.totalBillChart()
+          this.totalCostChart()
+          this.totalProfitChart()
         })
     },
     watch: {
       filterBy() {
-        this.redraw()
+        this.consumptionChart()
+        this.totalBillChart()
+        this.totalCostChart()
+        this.totalProfitChart()
       }
     },
     methods: {
-      redraw: function () {
-        this.filtered = []
+      consumptionChart() {
+        this.filteredConsumptionData = []
         this.totalBill = 0
         this.totalCost = 0
-        this.filtered = this.consumer_data.filter(item => item.year === this.filterBy)
-        console.log(this.filtered)
-        for (var i = 0; i < this.filtered.length; i++) {
-          this.chartOptions.series[0].data.push(this.filtered[i].consumption)
-          this.totalBill += this.filtered.length * this.filtered[i].total_bill
-          this.totalCost += this.filtered.length * this.filtered[i].total_cost
+
+        this.filteredConsumptionData.push(
+          ['Month', 'Consumption']
+        )
+        this.consumptionData = this.consumer_data.filter(item => item.year == this.filterBy)
+        for (var i = 0; i < this.consumptionData.length; i++) {
+          this.filteredConsumptionData.push([this.consumptionData[i].month, this.consumptionData[i].consumption])
+          this.totalBill += this.consumptionData.length * this.consumptionData[i].total_bill
+          this.totalCost += this.consumptionData.length * this.consumptionData[i].total_cost
         }
-      }
+      },
+      totalBillChart() {
+        this.filteredTotalBill = []
+        this.filteredTotalBill.push(
+          ['Month', 'Bill']
+        )
+        this.consumptionData = this.consumer_data.filter(item => item.year == this.filterBy)
+        for (var i = 0; i < this.consumptionData.length; i++) {
+          this.filteredTotalBill.push([this.consumptionData[i].month, this.consumptionData[i].total_bill])
+        }
+      },
+      totalCostChart() {
+        this.filteredTotalCost = []
+        this.filteredTotalCost.push(
+          ['Month', 'Cost']
+        )
+        this.consumptionData = this.consumer_data.filter(item => item.year == this.filterBy)
+        for (var i = 0; i < this.consumptionData.length; i++) {
+          this.filteredTotalCost.push([this.consumptionData[i].month, this.consumptionData[i].total_cost])
+        }
+      },
+      totalProfitChart() {
+        this.filteredTotalProfit = []
+        this.filteredTotalProfit.push(
+          ['Month', 'Profit']
+        )
+        this.consumptionData = this.consumer_data.filter(item => item.year == this.filterBy)
+        for (var i = 0; i < this.consumptionData.length; i++) {
+          this.filteredTotalProfit.push([this.consumptionData[i].month,
+            this.consumptionData[i].total_bill - this.consumptionData[i].total_cost
+          ])
+        }
+      },
     },
     filters: {
       round: function (value, decimals) {

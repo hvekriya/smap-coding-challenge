@@ -8,7 +8,7 @@
           </b-form-input>
         </b-form-group>
         <b-form-group id="exampleInputGroup3" label="Voltage:" label-for="exampleInput3">
-          <b-form-select id="exampleInput3" :options="voltage" required v-model="form.food">
+          <b-form-select id="exampleInput3" :options="voltage" required v-model="form.consumer_type">
           </b-form-select>
         </b-form-group>
         <b-button type="submit" variant="primary">Submit</b-button>
@@ -19,14 +19,14 @@
 </template>
 
 <script>
+  import axios from 'axios'
   export default {
     name: 'addConsumer',
     data() {
       return {
         form: {
           name: '',
-          food: null,
-          checked: []
+          consumer_type: null
         },
         voltage: [{
             text: 'Select One',
@@ -40,13 +40,23 @@
     methods: {
       onSubmit(evt) {
         evt.preventDefault();
-        alert(JSON.stringify(this.form));
+        console.log(this.form)
+        axios
+          .post(
+            'http://localhost:8000/api/consumer', {
+              name: this.form.name,
+              consumer_type: this.form.consumer_type
+            }
+          )
+          .then(response => {
+            alert('Form Submitted Successfully')
+          })
       },
       onReset(evt) {
         evt.preventDefault();
         /* Reset our form values */
         this.form.name = '';
-        this.form.food = null;
+        this.form.consumer_type = null;
         /* Trick to reset/clear native browser form validation state */
         this.show = false;
         this.$nextTick(() => {
